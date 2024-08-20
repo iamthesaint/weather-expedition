@@ -1,2 +1,2 @@
-# weather_play-by-play
-a dynamic weather app that delivers the 5-day forecast in the energetic style of a sports announcer using openAI.
+# weather_expedition
+an educational weather app that delivers a dynamic 5-day forecast in the soothing, narrative style of David Attenborough using openAI.
