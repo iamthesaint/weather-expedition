@@ -27,29 +27,17 @@ const model = new OpenAI({
   modelName: 'gpt-3.5-turbo',
 });
 
-// Define the parser for the structured output
-const resultSchema = z.object({
-  result: z.object({
-    day1: z.string(),
-    day2: z.string(),
-    day3: z.string(),
-    day4: z.string(),
-    day5: z.string(),
-  }),
+// define the request body schema using zod
+const requestBodySchema = z.object({
+  location: z.string(),
 });
 
-const structuredOutputParser = new StructuredOutputParser(resultSchema);
-
-const formatInstructions = structuredOutputParser.getFormatInstructions();
-console.log('Format Instructions:', formatInstructions);
-
-// TODO: Define the parser for the structured output
+  const promptTemplate = `
+  Provide the 5-day weather forecast for the requested location in the intellectual, captivating narrative style of David Attenborough. Include the location name in your response. For each day, describe the weather and how it works, give temperature in Fahrenheit, and include some interesting environmental facts.
   
-// define the prompt template
-const template = `
-  You are David Attenborough, a highly intelligent and captivating naturalist. You are narrating the 5-day weather forecast for the given location day-by-day. Explain the science behind the weather, in addition to providing interesting facts about the local wildlife. For each day, you will describe the weather; including the temperature in Fahrenheit. Make the response very interesting, while adhering to the following JSON schema:
-{{
-  "result": {{
+  Adhere to the following JSON schema for your response:
+  {{
+  "result": {{ 
     "day1": "string",
     "day2": "string",
     "day3": "string",
@@ -57,22 +45,27 @@ const template = `
     "day5": "string"
 }}
 }}
-`;
-
-// define the request body schema using zod
-const requestBodySchema = z.object({
-  location: z.string(),
-});
+  `
+  // create a structured output parser using zod
+  const structuredOutputParser = new StructuredOutputParser(
+    z.object({
+      result: z.object({
+        day1: z.string(),
+        day2: z.string(),
+        day3: z.string(),
+        day4: z.string(),
+        day5: z.string(),
+      }),
+    }),
+  );
 
 // create a prompt function that takes the user input location and passes it through the call method
 
-const formatPrompt = async (location: string): Promise<PromptTemplate> => {
-  const prompt = template.replace('given location', location);
-  return {
- response: prompt,
-  }
+  // TODO: Format the prompt with the user input
+  const formatPrompt = async (location: string): Promise<string> => {
+    return promptTemplate.replace('requested location', location);
   };
-
+  
 
   // TODO: use formatPrompt to create a prompt function
   const promptFunc = async (location: string): Promise<any> => {
@@ -93,12 +86,16 @@ const formatPrompt = async (location: string): Promise<PromptTemplate> => {
   export const parseResponse = async (response: string): Promise<any> => {
     try {
       console.log('Raw Response:', response);
-    return await structuredOutputParser.parse(response);
+      return await structuredOutputParser.parse(response);
     } catch (err) {
       console.error('error parsing response:', err);
+      if (err instanceof z.ZodError) {
+        console.error('Zod validation error:', err.errors);
+        throw new Error('Invalid response format');
+      }
       throw new Error('Error parsing response');
     }
-  }
+  };
 
   // Endpoint to handle request
 app.post('/forecast', async (req: Request, res: Response): Promise<any> => {
@@ -112,7 +109,7 @@ app.post('/forecast', async (req: Request, res: Response): Promise<any> => {
     res.json(parsedResult);
   } catch (err) {
     if (err instanceof z.ZodError) {
-      res.status(400).json
+      res.status(400).json({ error: 'Invalid request format', details: err.errors });
     } else {
       const error = err as Error;
       res.status(500).json({
