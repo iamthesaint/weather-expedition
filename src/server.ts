@@ -33,7 +33,7 @@ const requestBodySchema = z.object({
 });
 
   const promptTemplate = `
-  Provide the 5-day weather forecast for the requested location in the intellectual, captivating narrative style of David Attenborough. Include the location name in your response. For each day, describe the weather and how it works, give temperature in Fahrenheit, and include some interesting environmental facts.
+  Provide the 5-day weather forecast for the requested location in the captivating, educational narrative style of David Attenborough. Include the location name in your response. For each day, describe the weather and provide an environmental-based fact. Give temperature in Fahrenheit, and be sure to include some information about the native wildlife.
   
   Adhere to the following JSON schema for your response:
   {{
