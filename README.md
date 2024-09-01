@@ -8,7 +8,6 @@ A creative 5-day weather forecasting application that uses OpenAI API to provide
 - [Installation](#installation)
 - [Usage](#usage)
 - [License](#license)
-- [Contributing](#contributing)
 - [Tests](#tests)
 - [Questions](#questions)
   
